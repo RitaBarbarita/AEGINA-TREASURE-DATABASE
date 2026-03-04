@@ -236,8 +236,11 @@ function renderOverviewBars() {
 // ──── RENDER: METAL BARS ────
 function renderMetalBars() {
   const el = document.getElementById('metalBars');
-  el.innerHTML = alloyData.map(d => `
-    <div class="sys-bar-row"><div class="sys-label" style="font-size: 12px">${d.name.length>32?d.name.slice(0,32)+'…':d.name}</div><div class="sys-track"><div class="alloy-seg seg-au" style="width:${d.au}%"></div><div class="alloy-seg seg-ag" style="width:${d.ag}%"></div><div class="alloy-seg seg-cu" style="width:${d.cu}%"></div></div><div class="sys-pct">AU ${d.au}%</div></div>`).join('');
+  el.innerHTML = alloyData.map(d => {
+    const name = d.name.length > 32 ? `${d.name.slice(0, 32)}…` : d.name;
+    return `
+    <div class="sys-bar-row"><div class="sys-label" style="font-size: 12px">${name}</div><div class="sys-track"><div class="alloy-seg seg-au" style="width:${d.au}%"></div><div class="alloy-seg seg-ag" style="width:${d.ag}%"></div><div class="alloy-seg seg-cu" style="width:${d.cu}%"></div></div><div class="sys-pct">AU ${d.au}%</div></div>`;
+  }).join('');
 }
 // ──── RENDER: CASE GRID ────
 function renderCaseGrid() {
@@ -700,7 +703,7 @@ function renderInfluence() {
     const pipColor = pipColors[d.strength] || '#8a7dff';
     const pips = Array.from({length:5},(_,j)=>`<div class="inf-pip" style="${j<d.strength?`background:${pipColor};box-shadow:0 0 4px ${pipColor}`:''}"></div>`).join('');
     return `
-    <div class="inf-cell"><div class="inf-cell" style="padding:0;border:none;background:none"><div class="inf-region" style="color:var(--violet)">${d.region}</div><div class="inf-title">${d.title}</div><div class="inf-items">${items}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:8px"><span style="font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase">INFLUENCE STRENGTH //</span><span style="font-size:11px;letter-spacing:2px;color:${pipColor}">${strengthLabels[d.strength]||''}</span></div><div class="inf-pip-row">${pips}</div><div style="margin-top:10px;font-size: 13px;color:var(--dim);letter-spacing:.5px;line-height:1.6;border-top:1px solid var(--dimmer);padding-top:8px">${d.note}</div></div></div>`;
+    <div class="inf-cell"><div class="inf-region" style="color:var(--violet)">${d.region}</div><div class="inf-title">${d.title}</div><div class="inf-items">${items}</div><div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 4px"><span style="font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase">INFLUENCE STRENGTH //</span><span style="font-size:11px;letter-spacing:2px;color:${pipColor}">${strengthLabels[d.strength]||''}</span></div><div class="inf-pip-row">${pips}</div><div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--dimmer);font-size:13px;color:var(--dim);letter-spacing:.5px;line-height:1.6">${d.note}</div></div>`;
   }).join('');
 }
 // ──── RENDER: EVIDENCE ────
@@ -719,13 +722,20 @@ function renderTimeline() {
 }
 // ──── TAB SWITCH ────
 function switchTab(id, btn) {
+  if (!btn) btn = document.querySelector(`.nav-btn[data-tab="${id}"]`);
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('section-' + id).classList.add('active');
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 // ──── INIT ────
 document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('nav-bar').addEventListener('click', (event) => {
+    const btn = event.target.closest('.nav-btn');
+    if (!btn) return;
+    switchTab(btn.dataset.tab, btn);
+  });
+
   renderOverviewBars();
   renderMetalBars();
   renderCaseGrid();
