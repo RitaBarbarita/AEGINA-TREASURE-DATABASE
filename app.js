@@ -355,13 +355,7 @@ function openDossier(i) {
   // fields
   document.getElementById('dos-fields').innerHTML = `
     <div class="dos-field"><div class="dos-field-key">DATE //</div><div class="dos-field-val hi">${d.date}</div></div><div class="dos-field"><div class="dos-field-key">ORIGIN //</div><div class="dos-field-val">${d.origin}</div></div><div class="dos-field"><div class="dos-field-key">ALLOY COMPOSITION //</div><div class="dos-field-val">${d.alloy}</div></div><div class="dos-field"><div class="dos-field-key">SIGNIFICANCE //</div><div class="dos-field-val" style="color:var(--danger)">${d.threat}</div></div><div class="dos-field full"><div class="dos-field-key">TECHNIQUE //</div><div class="dos-field-val">${d.technique}</div></div><div class="dos-field full"><div class="dos-field-key">ICONOGRAPHY //</div><div class="dos-field-val">${d.iconography}</div></div><div class="dos-field full"><div class="dos-field-key">PARALLELS //</div><div class="dos-field-val">${d.parallels}</div></div><div class="dos-field full"><div class="dos-field-key">ATTRIBUTION NOTES //</div><div class="dos-field-val">${d.notes}</div></div>`;
-  // waveform
-  let wfH = '<div style="height:14px"></div>';
-  for (let b = 0; b < 60; b++) {
-    const h = 8 + Math.sin(b*0.5 + i) * 12 + Math.random()*18;
-    wfH += `<div class="wf-bar" style="height:${h}px;opacity:${0.4+Math.random()*0.5}"></div>`;
-  }
-  document.getElementById('dos-waveform').innerHTML = wfH;
+  
   const ov = document.getElementById('dossier-overlay');
   ov.classList.add('open');
   ov.scrollTop = 0;
@@ -603,22 +597,85 @@ function renderCyberMap() {
   // Scanlines (every 4px)
   for (let y = 0; y < H; y += 4)
     out += `<rect x="0" y="${y}" width="${W}" height="2" fill="rgba(0,0,0,0.12)"/>`;
-  // Rough land masses
-  const lands = [
-    // Aegean / Greece
-    { d:'M130,160 Q175,140 210,160 Q235,178 225,210 Q210,235 190,238 Q168,228 150,210 Q132,190 130,160Z', c:'rgba(138,125,255,0.07)' },
-    // Anatolia
-    { d:'M310,100 Q430,80 510,108 Q565,128 545,165 Q510,180 460,168 Q405,155 360,138 Q318,124 310,100Z', c:'rgba(158,170,184,0.06)' },
-    // Levant/Egypt coast
-    { d:'M340,195 Q400,185 440,205 Q460,222 448,248 Q422,260 388,252 Q360,240 340,195Z', c:'rgba(255,63,127,0.05)' },
-    // Crete
-    { d:'M178,252 Q225,244 260,260 Q270,274 242,282 Q205,284 185,272 Q175,264 178,252Z', c:'rgba(127,255,158,0.07)' },
-    // Mesopotamia
-    { d:'M520,180 Q580,165 620,185 Q640,205 620,228 Q585,238 550,228 Q522,215 520,180Z', c:'rgba(127,200,255,0.05)' },
-  ];
-  lands.forEach(l => out += `<path d="${l.d}" fill="${l.c}" stroke="rgba(91,75,255,0.1)" stroke-width="1"/>`);
-  // Mediterranean sea glow
-  out += `<ellipse cx="330" cy="225" rx="260" ry="100" fill="rgba(91,75,255,0.04)" stroke="rgba(91,75,255,0.07)" stroke-width="1"/>`;
+  // Landmasses — geographically projected from real lon/lat
+  // Projection: sx=11.621 px/deg lon, sy=8.131 px/deg lat, ox=-75.09, oy=514.53
+  const LF = 'rgba(138,125,255,0.07)';   // land fill
+  const LS = 'rgba(138,125,255,0.22)';   // land stroke
+  const SW = '0.7';
+
+  // Mediterranean sea subtle glow
+  out += `<ellipse cx="310" cy="235" rx="260" ry="90" fill="rgba(91,75,255,0.025)" stroke="none"/>`;
+
+  // Greece / Balkan peninsula
+  out += `<path d="M151.5,173.0 L163.1,181.2 L174.8,177.1 L186.4,174.7 L192.2,177.1
+    L203.8,175.5 L215.4,178.7 L227.1,174.7 L232.9,181.2 L230.5,185.2
+    L224.7,189.3 L227.1,193.4 L221.2,195.0 L213.1,201.5 L201.5,205.6
+    L194.5,206.4 L186.4,209.6 L180.6,212.1 L174.8,211.3 L168.9,206.4
+    L171.3,201.5 L166.6,197.4 L163.1,193.4 L157.3,189.3 L151.5,185.2 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="${SW}"/>`;
+
+  // Peloponnese
+  out += `<path d="M175.9,206.4 L180.6,203.1 L189.9,204.7 L198.0,207.2
+    L201.5,210.4 L198.0,215.3 L192.2,217.8 L184.1,218.6
+    L178.2,216.1 L174.8,212.9 L173.6,209.6 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="${SW}"/>`;
+
+  // Crete
+  out += `<path d="M198.0,225.1 L209.6,227.5 L221.2,230.0 L227.1,229.1
+    L230.5,228.3 L229.4,225.9 L221.2,225.1 L213.1,224.3 L201.5,223.4 Z"
+    fill="rgba(127,255,158,0.07)" stroke="rgba(127,255,158,0.25)" stroke-width="${SW}"/>`;
+
+  // Anatolia
+  out += `<path d="M227.1,173.0 L244.5,174.7 L261.9,177.1 L279.3,177.1
+    L296.8,173.0 L320.0,173.0 L343.3,173.0 L354.9,177.1 L372.3,181.2
+    L389.7,185.2 L401.4,182.8 L413.0,181.2 L424.6,177.1 L436.2,189.3
+    L442.0,193.4 L430.4,201.5 L418.8,205.6 L407.2,213.7 L395.6,217.8
+    L383.9,217.8 L366.5,221.0 L354.9,221.0 L343.3,220.2 L337.5,217.8
+    L325.8,215.3 L314.2,215.3 L302.6,217.8 L291.0,215.3 L279.3,213.7
+    L267.7,209.6 L256.1,209.6 L244.5,207.2 L238.7,201.5
+    L232.9,199.1 L227.1,201.5 L227.1,193.4 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="${SW}"/>`;
+
+  // Cyprus
+  out += `<path d="M296.8,230.0 L302.6,229.1 L314.2,228.3 L320.0,229.1
+    L327.0,229.1 L325.8,226.7 L317.7,225.9 L308.4,225.9 L300.3,227.5 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="0.5"/>`;
+
+  // Levant coast
+  out += `<path d="M337.5,217.8 L345.6,221.8 L349.1,225.9 L349.1,234.0
+    L343.3,238.1 L337.5,242.1 L331.6,246.2 L325.8,250.3 L323.5,258.4
+    L329.3,260.9 L337.5,258.4 L340.9,254.3 L343.3,246.2
+    L345.6,238.1 L343.3,230.0 L340.9,221.8 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="${SW}"/>`;
+
+  // Egypt / Nile delta
+  out += `<path d="M215.4,258.4 L238.7,262.5 L261.9,264.1 L285.2,262.5
+    L296.8,258.4 L308.4,262.5 L320.0,270.6 L325.8,274.7 L331.6,278.7
+    L325.8,282.8 L314.2,290.9 L308.4,295.0 L296.8,290.9 L285.2,286.9
+    L273.5,278.7 L261.9,270.6 L244.5,266.5 L227.1,264.1 Z"
+    fill="rgba(255,159,64,0.05)" stroke="rgba(255,159,64,0.2)" stroke-width="${SW}"/>`;
+
+  // Sinai
+  out += `<path d="M302.6,262.5 L314.2,262.5 L325.8,270.6 L329.3,274.7
+    L325.8,282.8 L314.2,286.9 L308.4,278.7 L302.6,270.6 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="0.5"/>`;
+
+  // Mesopotamia
+  out += `<path d="M372.3,209.6 L389.7,213.7 L413.0,213.7 L436.2,209.6
+    L459.5,205.6 L476.9,209.6 L488.5,217.8 L482.7,230.0 L471.1,238.1
+    L459.5,246.2 L471.1,258.4 L488.5,270.6 L482.7,274.7 L471.1,270.6
+    L459.5,262.5 L447.9,254.3 L436.2,246.2 L424.6,238.1
+    L413.0,230.0 L401.4,221.8 L383.9,213.7 Z"
+    fill="rgba(127,200,255,0.05)" stroke="rgba(127,200,255,0.16)" stroke-width="${SW}"/>`;
+
+  // Rhodes
+  out += `<path d="M250.3,217.8 L253.8,219.4 L252.6,221.8 L249.1,221.0 Z"
+    fill="${LF}" stroke="${LS}" stroke-width="0.5"/>`;
+
+  // Cyclades (small dots)
+  [[209,218],[220,215],[232,212],[242,210],[225,222]].forEach(([cx,cy]) =>
+    out += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="${LF}" stroke="${LS}" stroke-width="0.4"/>`
+  );
   // Draw routes (curved)
   routes.forEach(r => {
     const a = locMap[r.from], b = locMap[r.to];
